@@ -1,0 +1,11 @@
+{
+  "name": "example-app",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon --watch './' index.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "nodemon": "latest"
+  }
+}
