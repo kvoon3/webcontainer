@@ -46,6 +46,4 @@ app.listen(port, () => {
   },
 } satisfies FileSystemTree
 
-console.log('files', files)
-
 export { files }

@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import type { WebContainer } from '@webcontainer/api'
 import { Terminal } from '@xterm/xterm'
-import { onMounted, shallowRef } from 'vue'
+import { onMounted, shallowRef, useTemplateRef, watchEffect } from 'vue'
+
 import { useWebContainer } from '~/composables/webContainer'
 import { files } from '~/templates/files'
 
 const content = shallowRef(files['index.js'].file.contents)
 const previewUrl = shallowRef('')
+
 const term = new Terminal({
   convertEol: true,
+})
+const el = useTemplateRef<HTMLDivElement>('terminal')
+watchEffect(() => {
+  if (el.value) {
+    term.open(el.value)
+  }
 })
 
 async function installDependencies(wc: WebContainer) {
@@ -42,8 +50,6 @@ onMounted(async () => {
 
   await wc.mount(files)
 
-  term.open(document.getElementById('terminal')!)
-
   const exitCode = await installDependencies(wc)
 
   if (exitCode !== 0) {
@@ -67,16 +73,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div p4 h-full>
-    <h1 text-2xl font-semibold leading-loose p4 text-center>
+  <div flex="~ col" h-full>
+    <div font-semibold p2 border>
       Playground
-    </h1>
-    <div grid="~ cols-2 rows-2 gap-4">
-      <textarea v-model="content" font-mono p2 border rounded col-span-2 w-full>I am a textarea</textarea>
-      <div border rounded>
-        <iframe w-full :src="previewUrl" />
+    </div>
+    <div grow-1 relative>
+      <div inset-0 absolute grid="~ cols-2 rows-2 ">
+        <textarea v-model="content" font-mono p2 border rounded col-span-2 h-full w-full>I am a textarea</textarea>
+        <div of-scroll>
+          <iframe w-full :src="previewUrl" />
+        </div>
+        <div of-scroll>
+          <div ref="terminal" h-full />
+        </div>
       </div>
-      <div id="terminal" />
     </div>
   </div>
 </template>
