@@ -2,9 +2,10 @@
   "name": "example-app",
   "type": "module",
   "scripts": {
-    "start": "nodemon --watch './' index.js"
+    "dev": "nodemon --watch './' index.js"
   },
   "dependencies": {
+    "@antfu/ni": "latest",
     "express": "latest",
     "nodemon": "latest"
   }

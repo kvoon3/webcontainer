@@ -1,0 +1,23 @@
+:root {
+  --c-border: #eee;
+  --c-border-secondary: #ccc;
+
+  --c-bg-base: #fff;
+  --c-bg-secondary: #f5f5f5;
+
+  --c-text-base: #232323;
+  --un-default-border-color: var(--c-border);
+
+  --c-scrollbar-bg: var(--c-bg-secondary);
+  --c-scrollbar-thumb: var(--c-border);
+}
+
+.dark {
+  --c-border: #333;
+  --c-border-secondary: #444;
+
+  --c-bg-base: #000;
+  --c-bg-secondary: #111;
+
+  --c-text-base: #fff;
+}

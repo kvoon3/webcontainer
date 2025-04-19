@@ -1,10 +1,23 @@
 import { WebContainer } from '@webcontainer/api'
+import { shallowRef } from 'vue'
+import { wc } from '~/shared/const'
 
-let wc: WebContainer | null = null
+const isLoading = shallowRef(false)
 
-export async function useWebContainer() {
-  if (!wc)
-    wc = await WebContainer.boot()
+export function useWebContainer() {
+  console.log('wc.value', wc.value)
+  console.log('isLoading.value', isLoading.value)
 
-  return wc
+  if (!wc.value && !isLoading.value) {
+    isLoading.value = true
+    WebContainer.boot().then((instance) => {
+      wc.value = instance
+      isLoading.value = false
+    })
+  }
+
+  return {
+    wc,
+    isLoading,
+  }
 }

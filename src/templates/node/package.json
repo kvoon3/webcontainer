@@ -1,0 +1,13 @@
+{
+  "name": "node-playground",
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.8.1",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon ./index.js"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.3",
+    "nodemon": "latest"
+  }
+}

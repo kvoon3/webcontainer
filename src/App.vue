@@ -1,92 +1,83 @@
 <script setup lang="ts">
-import type { WebContainer } from '@webcontainer/api'
-import { Terminal } from '@xterm/xterm'
-import { onMounted, shallowRef, useTemplateRef, watchEffect } from 'vue'
+import { watchDebounced } from '@vueuse/core'
 
-import { useWebContainer } from '~/composables/webContainer'
-import { files } from '~/templates/files'
+import { shallowRef, watch } from 'vue'
+import DarkToggle from '~/components/DarkToggle.vue'
 
-const content = shallowRef(files['index.js'].file.contents)
+import TheTerminal from '~/components/TheTerminal.vue'
+import { setupFiles } from '~/templates'
+import { useWebContainer } from './composables/webContainer'
+
+const content = shallowRef('')
 const previewUrl = shallowRef('')
 
-const term = new Terminal({
-  convertEol: true,
-})
-const el = useTemplateRef<HTMLDivElement>('terminal')
-watchEffect(() => {
-  if (el.value) {
-    term.open(el.value)
+const { wc } = useWebContainer()
+
+const indexFile = 'src/main.js'
+
+watch(wc, async (wc) => {
+  if (wc) {
+    await setupFiles(wc)
+
+    content.value = await wc.fs.readFile(indexFile, 'utf-8')
+
+    wc.on('server-ready', (_, url) => {
+      previewUrl.value = url
+    })
   }
 })
 
-async function installDependencies(wc: WebContainer) {
-  const installProcess = await wc.spawn('pnpm', ['install'])
-  installProcess.output.pipeTo(new WritableStream({
-    write(data) {
-      term.write(data)
-    },
-  }))
-  return installProcess.exit
-}
+watchDebounced(content, async (val) => {
+  if (!wc.value)
+    return
 
-async function startServer(wc: WebContainer) {
-  const startProcess = await wc.spawn('pnpm', ['run', 'start'])
-
-  startProcess.output.pipeTo(new WritableStream({
-    write(data) {
-      term.write(data)
-    },
-  }))
-
-  wc.on('server-ready', (_, url) => {
-    previewUrl.value = url
-  })
-}
-
-let wc: WebContainer | null = null
-
-onMounted(async () => {
-  wc = await useWebContainer()
-
-  await wc.mount(files)
-
-  const exitCode = await installDependencies(wc)
-
-  if (exitCode !== 0) {
-    throw new Error('Failed to install dependencies')
+  try {
+    await wc.value?.fs.writeFile(indexFile, val)
   }
-
-  await startServer(wc)
-
-  watchDebounced(content, async (val) => {
-    try {
-      await wc?.fs.writeFile('index.js', val)
-    }
-    catch (error) {
-      console.error(error)
-    }
-  }, {
-    debounce: 800,
-    immediate: true,
-  })
+  catch (error) {
+    console.error(error)
+  }
+}, {
+  debounce: 800,
+  immediate: true,
 })
 </script>
 
 <template>
-  <div flex="~ col" h-full>
-    <div font-semibold p2 border>
-      Playground
+  <div flex="~ col" h-screen of-hidden>
+    <div flex justify-between border-base border-neutral p2>
+      <span text-lg font-semibold>
+        Playground
+      </span>
+
+      <DarkToggle />
     </div>
-    <div grow-1 relative>
-      <div inset-0 absolute grid="~ cols-2 rows-2 ">
-        <textarea v-model="content" font-mono p2 border rounded col-span-2 h-full w-full>I am a textarea</textarea>
-        <div of-scroll>
-          <iframe w-full :src="previewUrl" />
+    <div relative grow-1>
+      <div class="panelWrapper" absolute inset-0 grid="~ cols-2 rows-2">
+        <textarea v-model="content" col-span-2 h-full w-full rounded bg-base p2 font-mono outline-none>I am a textarea</textarea>
+        <div flex="~ col">
+          <div class="title">
+            Preview
+          </div>
+          <div grow-1 of-scroll>
+            <iframe :src="previewUrl" h-full w-full />
+          </div>
         </div>
-        <div of-scroll>
-          <div ref="terminal" h-full />
+        <div flex="~ col">
+          <div class="title">
+            Terminal
+          </div>
+          <div relative grow-1>
+            <TheTerminal absolute inset-0 />
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.title {
+  --uno: text-lg font-semibold p4 bg-secondary;
+}
+</style>
