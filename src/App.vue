@@ -60,7 +60,7 @@ watchDebounced(content, async (val) => {
             Preview
           </div>
           <div grow-1 of-scroll>
-            <iframe :src="previewUrl" h-full w-full />
+            <iframe allow="cross-origin-isolated" :src="previewUrl" h-full w-full />
           </div>
         </div>
         <div flex="~ col">
