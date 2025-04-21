@@ -6,7 +6,12 @@ export default antfu(
   {
     formatters: true,
     unocss: true,
-    vue: true,
+  },
+  {
+    files: ['src/templates/**/*'],
+    rules: {
+      'no-console': 'off',
+    },
   },
   createAutoInsert({
     imports: JSON.parse(fs.readFileSync('.unimport-items.json', 'utf-8')),
